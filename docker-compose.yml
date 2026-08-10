@@ -1,1 +1,14 @@
-version: '3.8'\nservices:\n  app:\n    image: alpine\n
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-home_decor}
+      POSTGRES_USER: ${POSTGRES_USER:-home_decor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

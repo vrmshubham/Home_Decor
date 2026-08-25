@@ -21,10 +21,13 @@ pip install -r requirements/development.txt
 cp .env.example .env
 python manage.py migrate
 python manage.py createsuperuser
+python manage.py sync_catalogue
 python manage.py runserver
 ```
 
 The API runs at `http://localhost:8000/api/` and Django Admin at `http://localhost:8000/admin/`.
+
+`migrate` only creates empty tables — `sync_catalogue` is what actually loads the categories and products (from `backend/catalogue_data/catalogue.yaml`) into your database. Re-run it any time that file changes. See [PRODUCT_CATALOG_SETUP.md](PRODUCT_CATALOG_SETUP.md) for how to add/edit categories, products and photos.
 
 ### Frontend
 

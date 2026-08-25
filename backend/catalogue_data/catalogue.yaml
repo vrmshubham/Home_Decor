@@ -1,0 +1,101 @@
+# Home Decor catalogue — single source of truth for categories, products, prices,
+# stock and photos.
+#
+# How to use:
+#   1. Edit this file to add, change or remove categories and products.
+#   2. Put photos for a product in:
+#        backend/media/products/<category-slug>/<product-slug>/
+#      Any .jpg/.jpeg/.png/.webp file dropped there is linked automatically, in
+#      filename order (e.g. 01-front.jpg, 02-detail.jpg, ...).
+#   3. From the backend/ folder, run:
+#        python manage.py sync_catalogue
+#
+# Removing a category or product block below HIDES it from the storefront (it is
+# marked inactive, not deleted, so nothing is lost by mistake). To permanently
+# delete products that are no longer listed here, run:
+#        python manage.py sync_catalogue --prune
+# Add --dry-run to either command to preview changes without touching the database.
+#
+# Only the fields shown below are required for a basic listing. You can add any
+# other field that exists on the Product model (pricing, fabric, care instructions,
+# SEO text, etc.) — see backend/apps/catalogue/models.py for the full list.
+
+categories:
+  - slug: curtains
+    name: Curtains
+    description: Light, textured and room-brightening window coverings.
+    display_order: 1
+    products:
+      - slug: ivory-linen-curtains
+        name: Ivory Linen Curtains
+        short_name: Ajrakh Block Print Door Curtain
+        sku: CUR-COT-AJR-IVO-7X48-S2
+        sub_category: Door Curtain — Eyelet / Ring Top
+        collection_name: Gujarat ki Khushboo — Kutch Ajrakh Series
+        description: >
+          Airy and elegant hand block-printed linen-blend curtains with a softly
+          textured finish, woven on a pit loom by artisans in Bhavnagar, Gujarat.
+        material: Cotton linen blend
+        primary_material: 100% Kora Cotton
+        fabric_blend: Pure 100% cotton — no synthetic blend
+        print_pattern: Block Print — Ajrakh geometric medallion
+        primary_colour: Ivory / Off-White
+        sizes_available: "5 ft | 7 ft | 9 ft"
+        care_instructions: Gentle machine wash below 30°C. Air dry in shade.
+        mrp: "1599.00"
+        website_selling_price: "1299.00"
+        current_stock: 36
+        is_featured: true
+        variants:
+          - sku: IVORY-LINEN-01
+            size: 5x7 ft
+            colour: Ivory
+            price: "2499.00"
+            compare_at_price: "3299.00"
+            stock_quantity: 12
+
+  - slug: bedsheets
+    name: Bedsheets
+    description: Soft cotton blends for everyday comfort.
+    display_order: 2
+    products:
+      - slug: sandstone-stripe-bedsheet
+        name: Sandstone Stripe Bedsheet
+        description: A warm, earthy stripe set created for calm and comfortable bedroom styling.
+        material: Premium cotton
+        care_instructions: Wash separately in cold water. Do not bleach.
+        current_stock: 8
+        is_featured: true
+        variants:
+          - sku: SANDSTONE-STRIPE-01
+            size: Queen
+            colour: Sandstone
+            price: "1899.00"
+            compare_at_price: "2399.00"
+            stock_quantity: 8
+
+  - slug: rugs
+    name: Rugs & Mats
+    description: Layered textures that define a room.
+    display_order: 3
+    products:
+      - slug: terracotta-weave-rug
+        name: Terracotta Weave Rug
+        description: Hand-inspired woven texture in terracotta tones for cosy, layered floors.
+        material: Polyester blend
+        care_instructions: Vacuum gently. Spot clean with mild detergent.
+        current_stock: 5
+        is_featured: false
+        variants:
+          - sku: TERRACOTTA-WEAVE-01
+            size: 4x6 ft
+            colour: Terracotta
+            price: "2999.00"
+            compare_at_price: "3999.00"
+            stock_quantity: 5
+
+  - slug: comforters-blankets
+    name: Comforters & Blankets
+    description: Used in winter
+    display_order: 4
+    products: []

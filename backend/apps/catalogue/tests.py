@@ -116,11 +116,39 @@ def test_product_api_returns_catalogue():
 
 
 @pytest.mark.django_db
-def test_seed_command_creates_sample_catalogue():
+def test_sync_catalogue_command_loads_default_file():
     from django.core.management import call_command
 
-    call_command('seed_catalogue', '--clear')
+    call_command('sync_catalogue')
 
     assert Category.objects.filter(slug='curtains').exists()
     assert Product.objects.filter(slug='ivory-linen-curtains').exists()
     assert ProductVariant.objects.filter(sku='IVORY-LINEN-01').exists()
+
+
+@pytest.mark.django_db
+def test_sync_catalogue_hides_products_removed_from_file(tmp_path):
+    from django.core.management import call_command
+
+    call_command('sync_catalogue')
+    assert Product.objects.get(slug='ivory-linen-curtains').is_active is True
+
+    empty_file = tmp_path / 'catalogue.yaml'
+    empty_file.write_text('categories: []', encoding='utf-8')
+    call_command('sync_catalogue', f'--file={empty_file}')
+
+    assert Product.objects.get(slug='ivory-linen-curtains').is_active is False
+    assert Product.objects.filter(slug='ivory-linen-curtains').exists()
+
+
+@pytest.mark.django_db
+def test_sync_catalogue_prune_deletes_removed_products(tmp_path):
+    from django.core.management import call_command
+
+    call_command('sync_catalogue')
+
+    empty_file = tmp_path / 'catalogue.yaml'
+    empty_file.write_text('categories: []', encoding='utf-8')
+    call_command('sync_catalogue', f'--file={empty_file}', '--prune')
+
+    assert not Product.objects.filter(slug='ivory-linen-curtains').exists()

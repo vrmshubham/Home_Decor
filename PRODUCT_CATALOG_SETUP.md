@@ -1,48 +1,63 @@
 # Product Catalog Setup Guide
 
-## Quick Start
+## Quick Start — the easy way: edit one file
 
-### 1. Folder Structure for Product Images
+The whole catalogue (categories, products, prices, stock, descriptions and photos)
+is driven from a single file: **`backend/catalogue_data/catalogue.yaml`**. This is
+the fastest way to add/remove categories or products, or to change details, prices
+and stock counts in bulk.
 
-Product images should be placed in:
+1. Open `backend/catalogue_data/catalogue.yaml` in any text editor.
+2. Add, edit or delete a `categories:` block or a `products:` block under it.
+   Removing a block hides that category/product from the storefront (it's marked
+   inactive, not deleted — nothing is lost by mistake).
+3. Put photos for a product in:
+   ```
+   backend/media/products/<category-slug>/<product-slug>/
+   ```
+   Any `.jpg` / `.jpeg` / `.png` / `.webp` file dropped there is linked to the
+   product automatically, in filename order (e.g. `01-front.jpg`, `02-detail.jpg`).
+4. From the `backend/` folder, run:
+   ```bash
+   python manage.py sync_catalogue
+   ```
+   This applies the file to the database. Useful flags:
+   - `--dry-run` — preview what would change without saving anything.
+   - `--prune` — permanently delete products no longer listed in the file
+     (without it, removed products/categories are just hidden, not deleted).
+
+Only a handful of fields (`slug`, `name`, `description`, `material`, price, stock)
+are needed for a basic listing — but you can set **any** field that exists on the
+`Product` model (fabric details, care instructions, SEO text, etc.) the same way;
+see `backend/apps/catalogue/models.py` for the full list.
+
+### Adding photos to product images (recommended: the folder above)
+
+This is the "easy access" path: create a folder named after the category slug and
+product slug under `backend/media/products/`, drop image files in, then run
+`python manage.py sync_catalogue`. Django serves them at:
 ```
-backend/media/products/
+http://localhost:8000/media/products/<category-slug>/<product-slug>/<filename>
 ```
 
-This folder is already created and configured. Django will serve these images at:
-```
-http://localhost:8000/media/products/[filename]
-```
+### Alternative: Django Admin
 
-### 2. Adding Product Images via Django Admin
+For quick one-off edits (e.g. bumping stock after a sale, toggling a product
+active/inactive) without opening a text editor, Django Admin works directly on the
+database and is unaffected by the YAML file until you next run `sync_catalogue`
+(which will overwrite fields the file also manages, using the file's values):
 
 1. Start the Django development server:
    ```bash
    cd backend
    python manage.py runserver
    ```
-
 2. Open Django Admin at: http://localhost:8000/admin/
-3. Navigate to **Catalogue > Products**
-4. Select a product to edit
-5. Scroll down to **Product Images** section
-6. Click **Add another Product Image**
-7. Upload image and fill in the alt text
-8. Save the product
+3. Navigate to **Catalogue > Products** or **Catalogue > Categories**
+4. Edit fields directly, or use the **Product Images** / **Product Variants**
+   inline sections on a product's edit page to upload images or manage variants.
 
-### 3. Category Filtering
-
-Categories are automatically fetched from the database and displayed on the storefront.
-
-To add categories:
-1. Go to Django Admin > Catalogue > Categories
-2. Add a new category with:
-   - Name (e.g., "Curtains")
-   - Slug (e.g., "curtains")
-   - Description
-   - Mark as active
-
-### 4. Product Details
+### Product Details
 
 Each product can have:
 - **Basic Info**: Name, Short Name, SKU, Description
@@ -53,7 +68,7 @@ Each product can have:
 - **Variants**: Different sizes and colors with individual prices
 - **Images**: Multiple product images with alt text
 
-### 5. Frontend Features
+### Frontend Features
 
 #### Home Page
 - Hero section
@@ -71,7 +86,7 @@ Each product can have:
 - All specifications and variants
 - Direct WhatsApp enquiry link with product name pre-filled
 
-### 6. API Endpoints
+### API Endpoints
 
 **Get all categories:**
 ```
@@ -93,49 +108,50 @@ GET http://localhost:8000/api/products/?category__slug=curtains
 GET http://localhost:8000/api/products/?search=curtain
 ```
 
-### 7. Image Upload Path Examples
+### Image Folder Structure
 
-Recommended folder structure for organizing images:
+Photos are organized per product, under the category slug:
 ```
 backend/media/products/
 ├── curtains/
-│   ├── curtain_001_primary.jpg
-│   ├── curtain_001_variant2.jpg
-│   └── curtain_002_primary.jpg
+│   └── ivory-linen-curtains/
+│       ├── 01-front.jpg
+│       └── 02-detail.jpg
 ├── bedsheets/
-│   ├── bedsheet_001_primary.jpg
-│   └── bedsheet_002_primary.jpg
+│   └── sandstone-stripe-bedsheet/
+│       └── 01-front.jpg
 └── rugs/
-    └── rug_001_primary.jpg
+    └── terracotta-weave-rug/
+        └── 01-front.jpg
 ```
+Filenames sort alphabetically to decide display order, so prefix them (`01-`, `02-`, ...)
+if order matters. After adding files, run `python manage.py sync_catalogue` to link them.
 
-### 8. Troubleshooting
+### Troubleshooting
 
 **Images not showing:**
 - Ensure DEBUG = True in `backend/config/settings/development.py`
-- Check that image path in ProductImage model is correct
-- Verify image file exists in `backend/media/products/`
+- Check the folder is named exactly `<category-slug>/<product-slug>` under `backend/media/products/`
+- Re-run `python manage.py sync_catalogue` after adding files — images are only linked on sync
 
-**Category filtering not working:**
-- Ensure category slug is correct
-- Check that products are linked to the category
-- Verify category is marked as active
+**Category or product not appearing / not updating:**
+- Confirm the block exists (and isn't accidentally removed) in `backend/catalogue_data/catalogue.yaml`
+- Run `python manage.py sync_catalogue` — edits to the file only take effect after a sync
+- Removed blocks are hidden (`is_active=False`), not deleted; re-add the block and sync to bring them back
+- Check Django admin > Catalogue for the current active/inactive state
 
-**Products not appearing:**
-- Check that products are marked as active
-- Verify products have a category assigned
-- Check Django admin > Catalogue > Products for the products
-
-### 9. Configuration Files
+### Configuration Files
 
 Key configuration files:
+- `backend/catalogue_data/catalogue.yaml` - The catalogue itself: categories, products, prices, stock, descriptions
+- `backend/apps/catalogue/management/commands/sync_catalogue.py` - Applies the YAML file to the database
 - `backend/config/settings/base.py` - Media file settings
 - `backend/config/urls.py` - Media file serving in DEBUG mode
 - `backend/.gitignore` - Ignores media files from git
 - `frontend/src/App.tsx` - Frontend app logic and API calls
 - `frontend/src/styles.css` - Styling for all views
 
-### 10. Environment Variables
+### Environment Variables
 
 In `backend/.env` (development):
 ```
@@ -151,9 +167,9 @@ VITE_WHATSAPP_NUMBER=919999999999
 
 ## Next Steps
 
-1. Place product images in `backend/media/products/`
-2. Add/edit categories in Django admin
-3. Add/edit products with images and specifications
+1. Edit `backend/catalogue_data/catalogue.yaml` to add/change categories and products
+2. Drop product photos into `backend/media/products/<category-slug>/<product-slug>/`
+3. Run `python manage.py sync_catalogue` to apply changes
 4. Test category filtering by clicking on categories on the storefront
 5. View product details by clicking "View details" on product cards
 
